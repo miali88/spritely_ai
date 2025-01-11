@@ -7,4 +7,4 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PYTHON_PATH="$DIR/venv/bin/python3"
 
 # Run the Python script with the --from-shortcut flag
-"$PYTHON_PATH" "$DIR/mac_mic.py" --from-shortcut
+"$PYTHON_PATH" "$DIR/instant_spritely.py" --from-shortcut

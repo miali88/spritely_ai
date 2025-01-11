@@ -21,12 +21,12 @@ def create_agent():
         logger.error(f"Failed to create agent: {e}", exc_info=True)
         raise
 
-def process_prompt(prompt: str) -> str:
+async def process_prompt(prompt: str) -> str:
     """Process a prompt through the LLM and return the response"""
     logger.info(f"Processing prompt: {prompt[:50]}...")
     try:
         agent = create_agent()
-        result = agent.run_sync(prompt)
+        result = await agent.run(prompt)
         logger.debug("Successfully processed prompt")
         return result.data
     except Exception as e:

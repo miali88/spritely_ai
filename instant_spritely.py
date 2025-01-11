@@ -12,6 +12,7 @@ import asyncio
 import sys
 from invoke_llm import process_prompt
 from utils.logging_config import setup_logger
+from user_settings import settings, save_settings
 
 load_dotenv()
 
@@ -19,7 +20,7 @@ load_dotenv()
 
 # Audio settings
 FORMAT = pyaudio.paInt16
-CHANNELS = 1
+CHANNELS = 2
 RATE = 44100
 CHUNK = 1024
 
@@ -37,11 +38,6 @@ class SpeechTranscriber:
         self.audio_thread = None
         self.should_stop = None
         self.loop = asyncio.new_event_loop()
-        self.wake_word_detected = False
-        self.last_wake_word_time = None
-        self.WAKE_WORD = ["hey sprite","hay sprite"]
-        self.END_PHRASE = ["end hey sprite","end hay sprite", "and hey sprite", "and hay sprite"]
-        self.llm_enabled = True  # Flag to control LLM processing
         self.collecting_transcript = False
         self.collected_transcript = []
 
@@ -49,76 +45,6 @@ class SpeechTranscriber:
         """Synchronous wrapper for the async message handler"""
         asyncio.run_coroutine_threadsafe(self.on_message(event, result), self.loop)
 
-    def handle_wake_word(self, transcript):
-        """Handle wake word detection and timing with fuzzy matching"""
-        current_time = datetime.now()
-        
-        # Clean the transcript for comparison
-        cleaned_transcript = transcript.lower()
-        cleaned_transcript = ''.join(char for char in cleaned_transcript if char.isalnum() or char.isspace())
-        
-        # Check for end phrase first
-        for end_phrase in self.END_PHRASE:
-            cleaned_end_phrase = ''.join(char for char in end_phrase.lower() if char.isalnum() or char.isspace())
-            if cleaned_end_phrase in cleaned_transcript and self.collecting_transcript:
-                print(f"\n🛑 End phrase detected at {current_time.strftime('%H:%M:%S')}!")
-                self.on_end_phrase_detected(transcript)
-                return
-            
-        # Check for wake word
-        for wake_word in self.WAKE_WORD:
-            cleaned_wake_word = ''.join(char for char in wake_word.lower() if char.isalnum() or char.isspace())
-            if cleaned_wake_word in cleaned_transcript:
-                if (not self.last_wake_word_time or 
-                    (current_time - self.last_wake_word_time).seconds > 3):
-                    self.wake_word_detected = True
-                    self.last_wake_word_time = current_time
-                    print(f"\n🎯 Wake word detected at {current_time.strftime('%H:%M:%S')}!")
-                    self.on_wake_word_detected(transcript)
-                    break
-
-    def on_end_phrase_detected(self, transcript):
-        """Process collected transcript and stop recording"""
-        print(f"🔚 End phrase triggered! Processing collected transcript...")
-        
-        if self.llm_enabled and self.collected_transcript:
-            try:
-                # Join all collected transcripts and clean the end phrase
-                full_transcript = " ".join(self.collected_transcript)
-                
-                # Remove all end phrases from the transcript
-                for end_phrase in self.END_PHRASE:
-                    full_transcript = full_transcript.replace(end_phrase.lower(), "").strip()
-                
-                print(f"📝 Collected transcript: {full_transcript}")
-                
-                # Process with LLM
-                response = process_prompt(full_transcript)
-                print(f"🤖 LLM Response: {response}")
-                
-                # Optional: copy response to clipboard
-                # pyperclip.copy(response)
-            except Exception as e:
-                print(f"❌ Error processing with LLM: {e}")
-        
-        # Reset collection state
-        self.collecting_transcript = False
-        self.collected_transcript = []
-        self.stop_recording()
-
-    def on_wake_word_detected(self, transcript):
-        """Start collecting transcript after wake word"""
-        print(f"🤖 Wake word triggered! Starting collection...")
-        self.collecting_transcript = True
-        self.collected_transcript = []
-        # Remove all wake words from transcript
-        cleaned = transcript.lower()
-        for wake_word in self.WAKE_WORD:
-            cleaned = cleaned.replace(wake_word.lower(), "")
-        cleaned = cleaned.strip()
-        if cleaned:
-            self.collected_transcript.append(cleaned)
-    
     async def on_message(self, event, result):
         logger.debug(f"Received message - Event type: {event}")
         print(f"Result type: {type(result)}")
@@ -129,51 +55,20 @@ class SpeechTranscriber:
             print("\n=== Transcription Debug ===")
             print(f"[{timestamp}] Raw result: {result}")
             
-            if hasattr(result, 'is_final'):  # Add safety check
+            if hasattr(result, 'is_final'):
                 if result.is_final:
                     transcript = result.channel.alternatives[0].transcript
-                    # Add space after the transcript
                     transcript = transcript.strip() + " "
-                    confidence = result.channel.alternatives[0].confidence
                     
-                    # Handle wake word and end phrase detection
-                    self.handle_wake_word(transcript)
+                    # Simplified collection - always collect while recording
+                    if transcript.strip():
+                        self.collected_transcript.append(transcript.strip())
+                        print(f"📝 Adding to transcript: {transcript.strip()}")
                     
-                    # If we're collecting and it's not a wake word or end phrase, add to collection
-                    if self.collecting_transcript:
-                        cleaned = transcript.strip()
-                        if cleaned:
-                            self.collected_transcript.append(cleaned)
-                            print(f"📝 Adding to transcript: {cleaned}")
-                    
-                    # Print detailed transcription info
+                    # Print debug info
                     print(f"\n🎤 Transcription Details:")
                     print(f"📝 Transcript: {transcript}")
-                    print(f"✨ Confidence: {confidence:.2f}")
-                    
-                    # Filter out wake words one by one
-                    filtered_transcript = transcript.lower()
-                    for wake_word in self.WAKE_WORD:
-                        filtered_transcript = filtered_transcript.replace(wake_word.lower(), "")
-                    filtered_transcript = filtered_transcript.strip() + " "
-
-                    if filtered_transcript.strip():
-                        self.current_transcription = filtered_transcript
-                        print(f"\n📋 Actions:")
-                        print(f"1. Copying to clipboard: {filtered_transcript}")
-                        # Copy filtered transcript to clipboard
-                        pyperclip.copy(filtered_transcript)
-                        time.sleep(0.1)
-                        
-                        print("2. ⌨️ Simulating paste command...")
-                        # Create controller without context manager
-                        controller = keyboard.Controller()
-                        controller.press(keyboard.Key.cmd)
-                        controller.press('v')
-                        time.sleep(0.1)
-                        controller.release('v')
-                        controller.release(keyboard.Key.cmd)
-                        print("✅ Paste command completed")
+                    print(f"✨ Confidence: {result.channel.alternatives[0].confidence:.2f}")
         except Exception as e:
             logger.error(f"Error in transcription: {e}", exc_info=True)
             import traceback
@@ -188,10 +83,22 @@ class SpeechTranscriber:
         self.is_recording = True
         self.current_transcription = ""
         
-        # Initialize audio and Deepgram
+        # Initialize audio and print device info
         self.audio = pyaudio.PyAudio()
-        deepgram = DeepgramClient()
         
+        # Use saved microphone preference
+        mic_index = settings['microphone_index']
+        if mic_index is not None:
+            input_device = self.audio.get_device_info_by_index(mic_index)
+        else:
+            input_device = self.audio.get_default_input_device_info()
+            
+        print(f"\n🎤 Recording using: {input_device['name']}")
+        print(f"    Sample Rate: {input_device['defaultSampleRate']}Hz")
+        print(f"    Max Input Channels: {input_device['maxInputChannels']}")
+        
+        deepgram = DeepgramClient()
+
         # Start the event loop in a separate thread
         def run_event_loop():
             asyncio.set_event_loop(self.loop)
@@ -227,12 +134,13 @@ class SpeechTranscriber:
         
         print("Deepgram connection started successfully")  # Debug line
 
-        # Start audio stream
+        # Update stream creation to use selected microphone
         self.stream = self.audio.open(
             format=FORMAT,
             channels=CHANNELS,
             rate=RATE,
             input=True,
+            input_device_index=settings['microphone_index'],
             frames_per_buffer=CHUNK
         )
 
@@ -254,6 +162,34 @@ class SpeechTranscriber:
             return
 
         print("Stopping recording...")
+        
+        # Process collected transcript with LLM before cleanup
+        if self.collected_transcript:
+            try:
+                full_transcript = " ".join(self.collected_transcript)
+                print(f"📝 Processing full transcript: {full_transcript}")
+                
+                # Instead of run_until_complete, schedule on the same loop that is already running
+                fut = asyncio.run_coroutine_threadsafe(process_prompt(full_transcript), self.loop)
+                response = fut.result()  # Wait for the LLM result
+                
+                print(f"🤖 LLM Response: {response}")
+                
+                # Copy LLM response to clipboard and paste
+                pyperclip.copy(response)
+                controller = keyboard.Controller()
+                controller.press(keyboard.Key.cmd)
+                controller.press('v')
+                time.sleep(0.1)
+                controller.release('v')
+                controller.release(keyboard.Key.cmd)
+                
+            except Exception as e:
+                print(f"❌ Error processing with LLM: {e}")
+        
+        # Reset collection
+        self.collected_transcript = []
+        
         self.should_stop.set()
         self.audio_thread.join()
         self.stream.stop_stream()
@@ -269,16 +205,70 @@ def open_accessibility_settings():
     subprocess.run(['open', 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'])
     print("Please enable accessibility permissions for your application")
 
+def select_microphone():
+    """Allow user to select microphone and save preference"""
+    audio = pyaudio.PyAudio()
+    
+    # Get all input devices
+    input_devices = []
+    print("\n🎤 Available Input Devices:")
+    for i in range(audio.get_device_count()):
+        dev_info = audio.get_device_info_by_index(i)
+        if dev_info['maxInputChannels'] > 0:  # Only show input devices
+            input_devices.append((i, dev_info))
+            print(f"{len(input_devices)}. {dev_info['name']}")
+            print(f"    Channels: {dev_info['maxInputChannels']}")
+            print(f"    Sample Rate: {dev_info['defaultSampleRate']}")
+    
+    # Get default device info
+    default_device = audio.get_default_input_device_info()
+    print(f"\n🎯 Default Device: {default_device['name']}")
+    
+    # Show current setting if exists
+    if settings['microphone_index'] is not None:
+        try:
+            current_device = audio.get_device_info_by_index(settings['microphone_index'])
+            print(f"📌 Current Setting: {current_device['name']}")
+        except:
+            print("⚠️ Previously saved device not found")
+    
+    # Get user selection
+    while True:
+        choice = input("\nSelect microphone (0 for default, or number from list above): ")
+        if choice.strip() == "0":
+            settings['microphone_index'] = None
+            break
+        try:
+            index = int(choice) - 1
+            if 0 <= index < len(input_devices):
+                settings['microphone_index'] = input_devices[index][0]
+                break
+            else:
+                print("❌ Invalid selection. Please try again.")
+        except ValueError:
+            print("❌ Please enter a number.")
+    
+    # Save selection
+    save_settings()
+    audio.terminate()
+    return settings['microphone_index']
+
 def check_permissions():
     logger.info("Checking permissions...")
     # Check microphone
     try:
         audio = pyaudio.PyAudio()
+        
+        # Allow user to select microphone
+        mic_index = select_microphone()
+        
+        # Test selected microphone
         stream = audio.open(
             format=FORMAT,
             channels=CHANNELS,
             rate=RATE,
             input=True,
+            input_device_index=mic_index,
             frames_per_buffer=CHUNK
         )
         stream.stop_stream()
@@ -288,7 +278,7 @@ def check_permissions():
     except Exception as e:
         print("❌ Microphone permission error:", e)
         return False
-
+    
     # Check Deepgram API key
     if not os.getenv('DEEPGRAM_API_KEY'):
         print("❌ Deepgram API key not found in .env file")
