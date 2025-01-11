@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Get the directory where the script is located
+# Geclt the directory where the script is located
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Use the virtual environment's Python
