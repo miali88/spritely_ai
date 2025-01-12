@@ -14,6 +14,7 @@ from invoke_llm import process_prompt
 from utils.logging_config import setup_logger
 from user_settings import settings, save_settings
 from transcribe_field import SpeechTranscriber as FieldTranscriber
+from cartesia_client import CartesiaClient
 
 load_dotenv()
 
@@ -41,6 +42,7 @@ class SpeechTranscriber:
         self.loop = asyncio.new_event_loop()
         self.collecting_transcript = False
         self.collected_transcript = []
+        self.cartesia = CartesiaClient()
 
     def message_handler(self, event, result):
         """Synchronous wrapper for the async message handler"""
@@ -83,6 +85,10 @@ class SpeechTranscriber:
         logger.info("Starting recording...")
         self.is_recording = True
         self.current_transcription = ""
+        
+        # Play confirmation sound
+        logger.info("Playing wake sound")
+        self.cartesia.generate_and_play("Hey, I'm here")
         
         # Initialize audio and print device info
         self.audio = pyaudio.PyAudio()
