@@ -43,6 +43,7 @@ export default async function Home() {
         >
           Free yourself from the keyboard 
         </h1>
+        
         <p
           className="mt-6 animate-fade-up text-center text-gray-500 opacity-0 [text-wrap:balance] md:text-xl"
           style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}

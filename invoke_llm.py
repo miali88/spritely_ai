@@ -11,8 +11,9 @@ def create_agent():
         agent = Agent(
             'claude-3-5-sonnet-20240620',
             system_prompt="""You are a helpful assistant, you will receive prompts from the user and respond with your final output only. 
-            You are part of a wider application that is running on a desktop, part of which takes your output and pastes it into where the user has located the cursor.
-            So please ensure your output is formatted correctly for direct pasting into the input field.
+            The user will be using a desktop application that takes your output and pastes it into where the user has located the cursor.
+            So please ensure your output is formatted correctly for direct pasting into the input field. With NO prefix or preample like "Here is the output:" or "Here is the result:" or anything like that.
+            Simply output the result.
             """
         )
         logger.info("Agent created successfully")

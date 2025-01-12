@@ -38,140 +38,39 @@ class SpeechTranscriber:
         self.audio_thread = None
         self.should_stop = None
         self.loop = asyncio.new_event_loop()
-        self.wake_word_detected = False
-        self.last_wake_word_time = None
-        self.WAKE_WORD = ["hey sprite","hay sprite"]
-        self.END_PHRASE = ["end hey sprite","end hay sprite", "and hey sprite", "and hay sprite"]
-        self.llm_enabled = True  # Flag to control LLM processing
-        self.collecting_transcript = False
-        self.collected_transcript = []
 
     def message_handler(self, event, result):
         """Synchronous wrapper for the async message handler"""
         asyncio.run_coroutine_threadsafe(self.on_message(event, result), self.loop)
 
-    def handle_wake_word(self, transcript):
-        """Handle wake word detection and timing with fuzzy matching"""
-        current_time = datetime.now()
-        
-        # Clean the transcript for comparison
-        cleaned_transcript = transcript.lower()
-        cleaned_transcript = ''.join(char for char in cleaned_transcript if char.isalnum() or char.isspace())
-        
-        # Check for end phrase first
-        for end_phrase in self.END_PHRASE:
-            cleaned_end_phrase = ''.join(char for char in end_phrase.lower() if char.isalnum() or char.isspace())
-            if cleaned_end_phrase in cleaned_transcript and self.collecting_transcript:
-                print(f"\n🛑 End phrase detected at {current_time.strftime('%H:%M:%S')}!")
-                self.on_end_phrase_detected(transcript)
-                return
-            
-        # Check for wake word
-        for wake_word in self.WAKE_WORD:
-            cleaned_wake_word = ''.join(char for char in wake_word.lower() if char.isalnum() or char.isspace())
-            if cleaned_wake_word in cleaned_transcript:
-                if (not self.last_wake_word_time or 
-                    (current_time - self.last_wake_word_time).seconds > 3):
-                    self.wake_word_detected = True
-                    self.last_wake_word_time = current_time
-                    print(f"\n🎯 Wake word detected at {current_time.strftime('%H:%M:%S')}!")
-                    self.on_wake_word_detected(transcript)
-                    break
-
-    def on_end_phrase_detected(self, transcript):
-        """Process collected transcript and stop recording"""
-        print(f"🔚 End phrase triggered! Processing collected transcript...")
-        
-        if self.llm_enabled and self.collected_transcript:
-            try:
-                # Join all collected transcripts and clean the end phrase
-                full_transcript = " ".join(self.collected_transcript)
-                
-                # Remove all end phrases from the transcript
-                for end_phrase in self.END_PHRASE:
-                    full_transcript = full_transcript.replace(end_phrase.lower(), "").strip()
-                
-                print(f"📝 Collected transcript: {full_transcript}")
-                
-                # Process with LLM using run_coroutine_threadsafe
-                async def process_async():
-                    return await process_prompt(full_transcript)
-                
-                future = asyncio.run_coroutine_threadsafe(process_async(), self.loop)
-                response = future.result()  # This will block until the result is ready
-                print(f"🤖 LLM Response: {response}")
-                
-                # Optional: copy response to clipboard
-                # pyperclip.copy(response)
-            except Exception as e:
-                print(f"❌ Error processing with LLM: {e}")
-        
-        # Reset collection state
-        self.collecting_transcript = False
-        self.collected_transcript = []
-        self.stop_recording()
-
-    def on_wake_word_detected(self, transcript):
-        """Start collecting transcript after wake word"""
-        print(f"🤖 Wake word triggered! Starting collection...")
-        self.collecting_transcript = True
-        self.collected_transcript = []
-        # Remove all wake words from transcript
-        cleaned = transcript.lower()
-        for wake_word in self.WAKE_WORD:
-            cleaned = cleaned.replace(wake_word.lower(), "")
-        cleaned = cleaned.strip()
-        if cleaned:
-            self.collected_transcript.append(cleaned)
-    
     async def on_message(self, event, result):
         logger.debug(f"Received message - Event type: {event}")
         print(f"Result type: {type(result)}")
         try:
-            # Create a timestamp for the transcription
             timestamp = datetime.now().isoformat()
             
             print("\n=== Transcription Debug ===")
             print(f"[{timestamp}] Raw result: {result}")
             
-            if hasattr(result, 'is_final'):  # Add safety check
+            if hasattr(result, 'is_final'):
                 if result.is_final:
                     transcript = result.channel.alternatives[0].transcript
-                    # Add space after the transcript
                     transcript = transcript.strip() + " "
                     confidence = result.channel.alternatives[0].confidence
-                    
-                    # Handle wake word and end phrase detection
-                    self.handle_wake_word(transcript)
-                    
-                    # If we're collecting and it's not a wake word or end phrase, add to collection
-                    if self.collecting_transcript:
-                        cleaned = transcript.strip()
-                        if cleaned:
-                            self.collected_transcript.append(cleaned)
-                            print(f"📝 Adding to transcript: {cleaned}")
                     
                     # Print detailed transcription info
                     print(f"\n🎤 Transcription Details:")
                     print(f"📝 Transcript: {transcript}")
                     print(f"✨ Confidence: {confidence:.2f}")
-                    
-                    # Filter out wake words one by one
-                    filtered_transcript = transcript.lower()
-                    for wake_word in self.WAKE_WORD:
-                        filtered_transcript = filtered_transcript.replace(wake_word.lower(), "")
-                    filtered_transcript = filtered_transcript.strip() + " "
 
-                    if filtered_transcript.strip():
-                        self.current_transcription = filtered_transcript
+                    if transcript.strip():
+                        self.current_transcription = transcript
                         print(f"\n📋 Actions:")
-                        print(f"1. Copying to clipboard: {filtered_transcript}")
-                        # Copy filtered transcript to clipboard
-                        pyperclip.copy(filtered_transcript)
+                        print(f"1. Copying to clipboard: {transcript}")
+                        pyperclip.copy(transcript)
                         time.sleep(0.1)
                         
                         print("2. ⌨️ Simulating paste command...")
-                        # Create controller without context manager
                         controller = keyboard.Controller()
                         controller.press(keyboard.Key.cmd)
                         controller.press('v')

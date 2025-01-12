@@ -1,0 +1,20 @@
+[
+  {
+    "timestamp": "2025-01-12T00:12:43.068829",
+    "transcript": "",
+    "confidence": 0.0,
+    "words": [],
+    "start_time": 0.0,
+    "duration": 2.43,
+    "request_id": "099854c2-96a3-4122-9225-d03f65e9bd4a"
+  },
+  {
+    "timestamp": "2025-01-12T00:12:46.596507",
+    "transcript": "",
+    "confidence": 0.0,
+    "words": [],
+    "start_time": 2.43,
+    "duration": 3.4214375,
+    "request_id": "099854c2-96a3-4122-9225-d03f65e9bd4a"
+  }
+]

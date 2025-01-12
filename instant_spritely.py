@@ -13,6 +13,7 @@ import sys
 from invoke_llm import process_prompt
 from utils.logging_config import setup_logger
 from user_settings import settings, save_settings
+from transcribe_field import SpeechTranscriber as FieldTranscriber
 
 load_dotenv()
 
@@ -317,27 +318,33 @@ def main():
         return
 
     transcriber = SpeechTranscriber()
+    field_transcriber = FieldTranscriber()
     
     def on_press(key):
         try:
-            # Convert the key to string for comparison
             key_str = str(key).replace("'", "")
-            print(f"Debug - Key string: {key_str}, Pressed keys: {pressed_keys}")  # Debug line
+            print(f"Debug - Key string: {key_str}, Pressed keys: {pressed_keys}")
             
-            # Check for both left and right alt keys
             alt_pressed = any(k in pressed_keys for k in [keyboard.Key.alt, keyboard.Key.alt_l, keyboard.Key.alt_r])
             cmd_pressed = keyboard.Key.cmd in pressed_keys
             
-            # Check if the key is 'k' (either direct or as part of a combination)
             is_k = key_str.lower() == 'k' or '˚' in pressed_keys
+            is_l = key_str.lower() == 'l' or '¬' in pressed_keys
             
-            if cmd_pressed and alt_pressed and (is_k or key_str == '˚'):
-                if not transcriber.is_recording:
-                    transcriber.start_recording()
-                else:
-                    transcriber.stop_recording()
+            if cmd_pressed and alt_pressed:
+                if is_k:
+                    if not transcriber.is_recording:
+                        transcriber.start_recording()
+                    else:
+                        transcriber.stop_recording()
+                elif is_l:
+                    if not field_transcriber.is_recording:
+                        field_transcriber.start_recording()
+                    else:
+                        field_transcriber.stop_recording()
             elif key == keyboard.Key.esc:
                 transcriber.stop_recording()
+                field_transcriber.stop_recording()
                 return False
         except Exception as e:
             print(f"Error handling key press: {e}")
