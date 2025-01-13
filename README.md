@@ -5,7 +5,7 @@
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
 [![Next.js 14](https://img.shields.io/badge/next.js-14-black.svg)](https://nextjs.org/)
 
-Spritely AI is a powerful desktop + web application that enables real-time audio transcription with AI analysis. It combines local audio processing with cloud-based AI to provide a seamless voice-to-text experience.
+Spritely AI is a powerful desktop application that enables real-time audio transcription with AI analysis. It combines local audio processing with cloud-based AI to provide a seamless voice-to-text experience.
 
 This repository is the desktop app and the web app is available at [https://spritelyai.com]
 ## 🌟 Features
@@ -20,19 +20,10 @@ This repository is the desktop app and the web app is available at [https://spri
 - Local audio processing for privacy
 - Automatic microphone selection and configuration
 
-### Web App
-- User authentication and account management
-- Transcription history and analysis
-- AI-powered insights and suggestions
-- Cross-device synchronization
-- Usage analytics and reporting
-
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Python 3.12+
-- Node.js 18+
-- pnpm (recommended) or npm
 - MacOS (Windows support coming soon)
 
 ### Desktop App Setup
@@ -61,12 +52,6 @@ The app requires:
 - Voice Synthesis: Cartesia
 - Keyboard Control: pynput
 
-### Web App Stack
-- Frontend: Next.js 14
-- Authentication: Clerk
-- Styling: Tailwind CSS
-- Analytics: Vercel Analytics
-
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
@@ -85,5 +70,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Deepgram](https://deepgram.com/) for real-time transcription
 - [Cartesia](https://cartesia.io/) for voice synthesis
-- [Next.js](https://nextjs.org/) team for the web framework
 - All our contributors and supporters
