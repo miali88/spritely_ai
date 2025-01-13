@@ -8,6 +8,8 @@ from typing import Dict
 from colorama import init, Fore, Style
 from utils.logging_config import setup_logger
 from user_settings import settings
+import numpy as np
+import time
 
 """ this project streams the transcribd audio, with speaker diarization to terminal
 TODO:
@@ -35,11 +37,46 @@ class TranscriberApp:
         self.audio_thread = None
         self.should_stop = None
         self.transcriptions = []
+        self.silence_threshold = 500  # Adjust this value based on your needs
+
+    def is_mic_active(self, duration=1):
+        """Check if the microphone is already in use by another application."""
+        logger.info("Checking microphone availability...")
+        
+        try:
+            temp_audio = pyaudio.PyAudio()
+            # Attempt to open the stream - if it fails, the mic is likely in use
+            stream = temp_audio.open(
+                format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                input=True,
+                input_device_index=settings['microphone_index'],
+                frames_per_buffer=CHUNK
+            )
+            
+            # If we get here, the mic is available
+            stream.stop_stream()
+            stream.close()
+            temp_audio.terminate()
+            return False  # Mic is not active/in-use
+            
+        except OSError as e:
+            logger.warning(f"Microphone appears to be in use: {e}")
+            if temp_audio:
+                temp_audio.terminate()
+            return True  # Mic is active/in-use
+        except Exception as e:
+            logger.error(f"Error checking microphone: {e}")
+            if temp_audio:
+                temp_audio.terminate()
+            raise
 
     def start_recording(self):
         if self.is_recording:
             logger.info("Recording already in progress")
             return
+
 
         logger.info("Starting recording...")
         self.is_recording = True
@@ -188,3 +225,17 @@ class TranscriberApp:
             with open(filename, 'w') as f:
                 json.dump(self.transcriptions, f, indent=2)
             print(f"Transcriptions saved to {filename}")
+
+# Add main block
+if __name__ == "__main__":
+    app = TranscriberApp()
+    
+    while True:
+        app.start_recording()
+        if app.is_recording:
+            break
+        time.sleep(1)  # Wait a second before checking again
+    
+    # Wait for Enter key to stop recording
+    input()
+    app.stop_recording()

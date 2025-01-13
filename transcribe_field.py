@@ -38,6 +38,7 @@ class SpeechTranscriber:
         self.audio_thread = None
         self.should_stop = None
         self.loop = asyncio.new_event_loop()
+        self.loop_thread = None
 
     def message_handler(self, event, result):
         """Synchronous wrapper for the async message handler"""
@@ -67,17 +68,10 @@ class SpeechTranscriber:
                         self.current_transcription = transcript
                         print(f"\n📋 Actions:")
                         print(f"1. Copying to clipboard: {transcript}")
-                        pyperclip.copy(transcript)
-                        time.sleep(0.1)
                         
-                        print("2. ⌨️ Simulating paste command...")
-                        controller = keyboard.Controller()
-                        controller.press(keyboard.Key.cmd)
-                        controller.press('v')
-                        time.sleep(0.1)
-                        controller.release('v')
-                        controller.release(keyboard.Key.cmd)
-                        print("✅ Paste command completed")
+                        # Try AppleScript paste instead of direct keyboard simulation
+                        if not self.paste_text_applescript(transcript):
+                            print("⚠️ Paste failed. Text is in clipboard.")
         except Exception as e:
             logger.error(f"Error in transcription: {e}", exc_info=True)
             import traceback
@@ -108,12 +102,17 @@ class SpeechTranscriber:
         
         deepgram = DeepgramClient()
 
-        # Start the event loop in a separate thread
+        # Modify the event loop handling
         def run_event_loop():
             asyncio.set_event_loop(self.loop)
-            self.loop.run_forever()
-        
-        threading.Thread(target=run_event_loop, daemon=True).start()
+            try:
+                self.loop.run_forever()
+            except Exception as e:
+                logger.error(f"Event loop error: {e}")
+            
+        # Store thread reference and ensure it's daemon
+        self.loop_thread = threading.Thread(target=run_event_loop, daemon=True)
+        self.loop_thread.start()
         
         try:
             self.dg_connection = deepgram.listen.websocket.v("1")
@@ -144,14 +143,20 @@ class SpeechTranscriber:
         print("Deepgram connection started successfully")  # Debug line
 
         # Update stream creation to use selected microphone
-        self.stream = self.audio.open(
-            format=FORMAT,
-            channels=CHANNELS,
-            rate=RATE,
-            input=True,
-            input_device_index=settings['microphone_index'],
-            frames_per_buffer=CHUNK
-        )
+        try:
+            self.stream = self.audio.open(
+                format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                input=True,
+                input_device_index=settings['microphone_index'],
+                frames_per_buffer=CHUNK
+            )
+            logger.info("Audio stream opened successfully")
+        except Exception as e:
+            logger.error(f"Failed to open audio stream: {e}")
+            self.stop_recording()
+            return
 
         self.should_stop = threading.Event()
         
@@ -159,7 +164,7 @@ class SpeechTranscriber:
         def capture_audio():
             while not self.should_stop.is_set():
                 data = self.stream.read(CHUNK, exception_on_overflow=False)
-                print(f"📢 Sending {len(data)} bytes of audio data")
+                # print(f"📢 Sending {len(data)} bytes of audio data")
                 self.dg_connection.send(data)
 
         self.audio_thread = threading.Thread(target=capture_audio)
@@ -171,15 +176,41 @@ class SpeechTranscriber:
             return
 
         print("Stopping recording...")
-        self.should_stop.set()
-        self.audio_thread.join()
-        self.stream.stop_stream()
-        self.stream.close()
-        self.audio.terminate()
-        self.dg_connection.finish()
-        self.is_recording = False
-        self.loop.call_soon_threadsafe(self.loop.stop)
-        print("Recording stopped!")
+        try:
+            # Gracefully stop components
+            self.should_stop.set()
+            if self.audio_thread:
+                self.audio_thread.join(timeout=1.0)
+            if self.stream:
+                self.stream.stop_stream()
+                self.stream.close()
+            if self.audio:
+                self.audio.terminate()
+            if self.dg_connection:
+                self.dg_connection.finish()
+            
+            # Properly cleanup the event loop
+            if self.loop and self.loop.is_running():
+                self.loop.call_soon_threadsafe(self.loop.stop)
+                if self.loop_thread:
+                    self.loop_thread.join(timeout=1.0)
+                    
+        except Exception as e:
+            logger.error(f"Error during cleanup: {e}")
+        finally:
+            self.is_recording = False
+            print("Recording stopped!")
+
+    def paste_text_applescript(self, text):
+        """Use AppleScript to paste text"""
+        try:
+            pyperclip.copy(text)
+            cmd = '''osascript -e 'tell application "System Events" to keystroke "v" using command down' '''
+            subprocess.run(cmd, shell=True)
+            return True
+        except Exception as e:
+            logger.error(f"AppleScript paste error: {e}")
+            return False
 
 def open_accessibility_settings():
     # Opens directly to Accessibility settings
