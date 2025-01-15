@@ -1,4 +1,4 @@
-# Spritely AI 🎙️✨
+# Spritely AI 🧚🏼‍♀️ ✨ 🎙️
 > Free humanity from the keyboard - Your AI-powered voice companion
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
