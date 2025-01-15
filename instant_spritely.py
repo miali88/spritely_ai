@@ -10,15 +10,18 @@ import os
 import subprocess
 import asyncio
 import sys
-from invoke_llm_pydanic import process_prompt
+from invoke_llm import process_prompt
 from utils.logging_config import setup_logger
 from user_settings import settings, save_settings
 from transcribe_field import SpeechTranscriber as FieldTranscriber
-from cartesia_client import CartesiaClient
+from elevenlabs.client import ElevenLabs
+from elevenlabs import stream as play_audio
+
 from gui import SpritelyGUI
 from utils.audio_utils import check_permissions, select_microphone, FORMAT, CHANNELS, RATE, CHUNK
 
 load_dotenv()
+eleven_labs = ElevenLabs()
 
 """ transcribed audio to cursor/input field """
 
@@ -44,7 +47,6 @@ class SpeechTranscriber:
         self.loop = asyncio.new_event_loop()
         self.collecting_transcript = False
         self.collected_transcript = []
-        self.cartesia = CartesiaClient()
 
     def message_handler(self, event, result):
         """Synchronous wrapper for the async message handler"""
@@ -58,7 +60,7 @@ class SpeechTranscriber:
             timestamp = datetime.now().isoformat()
             
             print("\n=== Transcription Debug ===")
-            print(f"[{timestamp}] Raw result: {result}")
+            print(f"[{timestamp}]")
             
             if hasattr(result, 'is_final'):
                 if result.is_final:
@@ -97,7 +99,13 @@ class SpeechTranscriber:
         
         # Play confirmation sound
         logger.info("Playing wake sound")
-        self.cartesia.generate_and_play("Spritely here")
+        audio_stream = eleven_labs.generate(
+            text="Spritely here",
+            voice="Brian",
+            model="eleven_multilingual_v2",
+            stream=True
+        )
+        play_audio(audio_stream)
         
         # Initialize audio and print device info
         self.audio = pyaudio.PyAudio()
@@ -114,6 +122,7 @@ class SpeechTranscriber:
         print(f"    Max Input Channels: {input_device['maxInputChannels']}")
         
         deepgram = DeepgramClient()
+
 
         # Start the event loop in a separate thread
         def run_event_loop():
@@ -178,39 +187,35 @@ class SpeechTranscriber:
             return
 
         print("Stopping recording...")
-        self.cartesia.generate_and_play("thinking...")
+        audio_stream = eleven_labs.generate(
+            text="thinking...",
+            voice="Brian",
+            model="eleven_multilingual_v2",
+            stream=True
+        )
+        play_audio(audio_stream)
         
         # Process collected transcript with LLM before cleanup
         if self.collected_transcript:
             try:
                 full_transcript = " ".join(self.collected_transcript)
                 print(f"📝 Processing full transcript: {full_transcript}")
-                
-                # Instead of run_until_complete, schedule on the same loop that is already running
-                fut = asyncio.run_coroutine_threadsafe(process_prompt(full_transcript), self.loop)
-                response = fut.result()  # Wait for the LLM result
-                
+                print("full_transcript type: ", type(full_transcript))
+                # Pass the cartesia client to process_prompt
+                fut = asyncio.run_coroutine_threadsafe(
+                    process_prompt(full_transcript), 
+                    self.loop
+                )
+                response, response_type = fut.result()  # Wait for the LLM result
                 print(f"🤖 LLM Response: {response}")
                 
-                # Only copy LLM response to clipboard, without pasting
-                pyperclip.copy(response)
-                self.cartesia.generate_and_play("added to your clipboard")
-                
-                # Commented out automatic pasting
-                # controller = keyboard.Controller()
-                # controller.press(keyboard.Key.cmd)
-                # controller.press('v')
-                # time.sleep(0.1)
-                # controller.release('v')
-                # controller.release(keyboard.Key.cmd)
-                
+                # Clipboard handling is now done in process_prompt
                 
             except Exception as e:
                 print(f"❌ Error processing with LLM: {e}")
         
         # Reset collection
-        self.collected_transcript = []
-        
+        self.collected_transcript = []   
         self.should_stop.set()
         self.audio_thread.join()
         self.stream.stop_stream()
