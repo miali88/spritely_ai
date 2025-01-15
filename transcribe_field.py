@@ -10,7 +10,6 @@ import os
 import subprocess
 import asyncio
 import sys
-from desktop_app.invoke_llm_pydanic import process_prompt
 from utils.logging_config import setup_logger
 from user_settings import settings, save_settings
 
