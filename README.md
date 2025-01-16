@@ -24,6 +24,13 @@ This repository is the desktop app and the web app is available at [https://spri
 ### Prerequisites
 - Python 3.12+
 - MacOS (Windows support coming soon)
+- API keys for the following services
+  - Elevenlabs account
+  - Deepgram
+  - Groq
+  - Anthropic
+- You will need to give keystroke permissions to the app for the shortcuts
+
 
 ### Desktop App Setup
 
