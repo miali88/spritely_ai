@@ -18,7 +18,7 @@ from elevenlabs.client import ElevenLabs
 from elevenlabs import stream as play_audio
 
 from gui import SpritelyGUI
-from utils.audio_utils import check_permissions, select_microphone, FORMAT, CHANNELS, RATE, CHUNK
+from utils.audio_utils import check_permissions, FORMAT, CHANNELS, RATE, CHUNK
 
 load_dotenv()
 eleven_labs = ElevenLabs()
@@ -101,7 +101,7 @@ class SpeechTranscriber:
         logger.info("Playing wake sound")
         audio_stream = eleven_labs.generate(
             text="Spritely here",
-            voice="Brian",
+            voice="OOjDveYEA7KnRY2FRSmX",
             model="eleven_multilingual_v2",
             stream=True
         )
@@ -189,7 +189,7 @@ class SpeechTranscriber:
         print("Stopping recording...")
         audio_stream = eleven_labs.generate(
             text="thinking...",
-            voice="Brian",
+            voice="OOjDveYEA7KnRY2FRSmX",
             model="eleven_multilingual_v2",
             stream=True
         )
