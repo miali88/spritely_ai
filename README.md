@@ -88,7 +88,12 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the AGPL-3.0 for non-commercial use.
+
+Commercial Use
+For commercial use or deployments requiring a setup fee, please contact us for a commercial license at michael@flowon.ai.
+
+By using this software, you agree to the terms of the license.
 
 ## 🙏 Acknowledgments
 
