@@ -3,7 +3,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
-[![Next.js 14](https://img.shields.io/badge/next.js-14-black.svg)](https://nextjs.org/)
 
 Spritely AI is a powerful desktop application that enables real-time audio transcription with AI analysis. It combines local audio processing with cloud-based AI to provide a seamless voice-to-text experience.
 
@@ -39,12 +38,15 @@ cd spritely-ai
 python3.12 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+touch .env
+# add your api keys to .env
 ```
 
 3. Run the app:
 ```bash
 python main.py
 ```
+
 
 ## 🎯 Usage
 
