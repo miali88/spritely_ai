@@ -1,7 +1,6 @@
 # Spritely AI 🧚🏼‍♀️ ✨ 🎙️
 > Free humanity from the keyboard - Your AI-powered voice companion
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
 
 Spritely AI is a powerful desktop application that enables real-time audio transcription with AI analysis. It combines local audio processing with cloud-based AI to provide a seamless voice-to-text experience.
