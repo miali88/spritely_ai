@@ -71,7 +71,6 @@ async def save_to_clipboard(prompt: str) -> str:
     
     return response_text
 
-
 def llm_clipboard(prompt: str):
     message = anthropic_client.messages.create(
         model="claude-3-sonnet-20240229",
@@ -107,7 +106,7 @@ def llm_speak(prompt: str):
             logger.debug(f"📝 Received chunk: {chunk.delta.text[:20]}...")
             yield chunk.delta.text
 
-def tts_service(prompt: str):
+async def tts_service(prompt: str):
     audio_stream = eleven_labs.generate(
         text=llm_speak(prompt),
         voice="OOjDveYEA7KnRY2FRSmX",

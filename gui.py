@@ -8,7 +8,7 @@ from tkinter import scrolledtext
 class SpritelyGUI:
     def __init__(self, transcriber, field_transcriber, meeting_transcriber):
         self.root = tk.Tk()
-        self.root.title("Spritely")
+        self.root.title("Spritely AI")
         self.root.geometry("400x500")
         
         # Make window transparent
@@ -65,6 +65,10 @@ class SpritelyGUI:
         self.status_label = ttk.Label(status_frame, text="Ready", font=("Helvetica", 12))
         self.status_label.pack()
         
+        # Add microphone status label
+        self.mic_label = ttk.Label(status_frame, text="", font=("Helvetica", 10, "italic"))
+        self.mic_label.pack()
+        
         # Recording controls frame
         recording_frame = ttk.LabelFrame(main_container, text="Recording Controls", padding="10")
         recording_frame.pack(fill="x", pady=(0, 10))
@@ -78,7 +82,7 @@ class SpritelyGUI:
         ai_buttons = ttk.Frame(ai_frame)
         ai_buttons.pack(pady=5)
         
-        self.ai_record_btn = ttk.Button(ai_buttons, text="Start Recording", 
+        self.ai_record_btn = ttk.Button(ai_buttons, text="Spawn", 
                                       style="Record.TButton",
                                       command=self.toggle_ai_recording)
         self.ai_record_btn.pack(side="left", padx=5)
@@ -92,7 +96,7 @@ class SpritelyGUI:
         field_buttons = ttk.Frame(field_frame)
         field_buttons.pack(pady=5)
         
-        self.field_record_btn = ttk.Button(field_buttons, text="Start Recording",
+        self.field_record_btn = ttk.Button(field_buttons, text="Spawn",
                                          style="Record.TButton",
                                          command=self.toggle_field_recording)
         self.field_record_btn.pack(side="left", padx=5)
@@ -148,17 +152,17 @@ class SpritelyGUI:
     def toggle_ai_recording(self):
         if not self.transcriber.is_recording:
             self.transcriber.start_recording()
-            self.ai_record_btn.configure(text="Stop Recording", style="Stop.TButton")
+            self.ai_record_btn.configure(text="Sleep", style="Stop.TButton")
             self.update_status("AI Transcription Active", True)
         else:
             self.transcriber.stop_recording()
-            self.ai_record_btn.configure(text="Start Recording", style="Record.TButton")
+            self.ai_record_btn.configure(text="Spawn", style="Record.TButton")
             self.update_status("Ready", False)
 
     def toggle_field_recording(self):
         if not self.field_transcriber.is_recording:
             self.field_transcriber.start_recording()
-            self.field_record_btn.configure(text="Stop Recording", style="Stop.TButton")
+            self.field_record_btn.configure(text="Sleep", style="Stop.TButton")
             self.update_status("Field Transcription Active", True)
         else:
             self.field_transcriber.stop_recording()
@@ -260,6 +264,16 @@ class SpritelyGUI:
     
     def update_status(self, message, is_recording=False):
         self.status_label.config(text=message)
+        # Try to get microphone info safely
+        try:
+            import sounddevice as sd
+            device_info = sd.query_devices(kind='input')
+            current_mic = device_info['name']
+            self.mic_label.config(text=f"Using: {current_mic}")
+        except Exception as e:
+            self.mic_label.config(text="Microphone info unavailable")
+            print(f"Could not get microphone info: {e}")
+            
         if is_recording:
             self.recording_status.config(text="Recording", foreground="green")
         else:
