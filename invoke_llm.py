@@ -31,8 +31,10 @@ class ChatMessage(BaseModel):
 class ResponseType:
     SPEAK: Literal["speak"] = "speak"
     CLIPBOARD: Literal["clipboard"] = "clipboard"
+    STORE: Literal["store"] = "store"
+    FIELD: Literal["field"] = "field"
 
-ResponseTypeStr = Literal["speak", "clipboard"]
+ResponseTypeStr = Literal["speak", "clipboard", "store", "field"]
 
 async def save_to_clipboard(prompt: str) -> str:
     """Save LLM response to clipboard and play notification.
@@ -169,9 +171,12 @@ async def process_prompt(prompt: str) -> tuple[str, ResponseTypeStr]:
         if response_type == ResponseType.SPEAK:
             await tts_service(prompt)
             return "", response_type  # Return empty string since audio was played
-        else:
+        elif response_type == ResponseType.CLIPBOARD:
             response_text = await save_to_clipboard(prompt)
             return response_text, response_type
+        elif response_type == ResponseType.STORE:
+            return "", response_type
+        
             
     except Exception as e:
         logger.error(f"❌ Processing failed: {e}", exc_info=True)

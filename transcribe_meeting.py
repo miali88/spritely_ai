@@ -220,11 +220,37 @@ class TranscriberApp:
 
     def save_transcriptions(self):
         if self.transcriptions:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"transcription_{timestamp}.json"
-            with open(filename, 'w') as f:
-                json.dump(self.transcriptions, f, indent=2)
-            print(f"Transcriptions saved to {filename}")
+            # Convert transcriptions to serializable format
+            serializable_transcripts = []
+            for t in self.transcriptions:
+                # Skip empty transcripts
+                if not t['transcript'].strip():
+                    continue
+                    
+                # Extract speaker from words if available
+                speaker = None
+                if t.get('words') and hasattr(t['words'][0], 'speaker'):
+                    speaker = t['words'][0].speaker
+
+                # Create clean transcript object
+                transcript_obj = {
+                    'timestamp': t['timestamp'],
+                    'transcript': t['transcript'],
+                    'confidence': t['confidence'],
+                    'speaker': speaker,
+                    'start_time': t['start_time'],
+                    'duration': t['duration'],
+                    'request_id': t['request_id']
+                }
+                serializable_transcripts.append(transcript_obj)
+
+            # Save to file only if we have non-empty transcripts
+            if serializable_transcripts:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"meetings/json/transcription_{timestamp}.json"
+                with open(filename, 'w') as f:
+                    json.dump(serializable_transcripts, f, indent=2)
+                print(f"Transcriptions saved to {filename}")
 
 # Add main block
 if __name__ == "__main__":

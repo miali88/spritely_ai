@@ -1,15 +1,19 @@
 import tkinter as tk
 from tkinter import ttk
 from utils.audio_utils import select_microphone, check_permissions
+import os
+from datetime import datetime
+from tkinter import scrolledtext
 
 class SpritelyGUI:
-    def __init__(self, transcriber, field_transcriber):
+    def __init__(self, transcriber, field_transcriber, meeting_transcriber):
         self.root = tk.Tk()
         self.root.title("Spritely")
         self.root.geometry("400x500")
         
         self.transcriber = transcriber
         self.field_transcriber = field_transcriber
+        self.meeting_transcriber = meeting_transcriber
         
         # Style configuration
         style = ttk.Style()
@@ -35,7 +39,7 @@ class SpritelyGUI:
         ai_frame = ttk.Frame(recording_frame)
         ai_frame.pack(fill="x", pady=5)
         
-        ttk.Label(ai_frame, text="AI Transcription", font=("Helvetica", 11, "bold")).pack(side="top")
+        ttk.Label(ai_frame, text="Spawn Spritely 🧚🏼‍♀️✨", font=("Helvetica", 11, "bold")).pack(side="top")
         
         ai_buttons = ttk.Frame(ai_frame)
         ai_buttons.pack(pady=5)
@@ -59,6 +63,24 @@ class SpritelyGUI:
                                          command=self.toggle_field_recording)
         self.field_record_btn.pack(side="left", padx=5)
         
+        # Meeting Transcription controls
+        meeting_frame = ttk.Frame(recording_frame)
+        meeting_frame.pack(fill="x", pady=5)
+        
+        ttk.Label(meeting_frame, text="Meeting Transcription 📝", font=("Helvetica", 11, "bold")).pack(side="top")
+        
+        meeting_buttons = ttk.Frame(meeting_frame)
+        meeting_buttons.pack(pady=5)
+        
+        self.meeting_record_btn = ttk.Button(meeting_buttons, text="Start Meeting",
+                                         style="Record.TButton",
+                                         command=self.toggle_meeting_recording)
+        self.meeting_record_btn.pack(side="left", padx=5)
+
+        # Initialize meeting state
+        self.meeting_active = False
+        self.meeting_transcript = []
+
         # Shortcuts frame
         shortcuts_frame = ttk.LabelFrame(main_container, text="Keyboard Shortcuts", padding="10")
         shortcuts_frame.pack(fill="x", pady=(0, 10))
@@ -86,6 +108,9 @@ class SpritelyGUI:
                                         foreground="red", font=("Helvetica", 12, "bold"))
         self.recording_status.pack(pady=10)
 
+        # Add transcript viewer window attribute
+        self.transcript_window = None
+
     def toggle_ai_recording(self):
         if not self.transcriber.is_recording:
             self.transcriber.start_recording()
@@ -106,6 +131,94 @@ class SpritelyGUI:
             self.field_record_btn.configure(text="Start Recording", style="Record.TButton")
             self.update_status("Ready", False)
 
+    def toggle_meeting_recording(self):
+        if not self.meeting_active:
+            print("Starting meeting recording...")
+            self.meeting_active = True
+            self.meeting_transcript = []
+            self.meeting_transcriber.start_recording()
+            self.meeting_record_btn.configure(text="End Meeting", style="Stop.TButton")
+            self.update_status("Meeting Recording Active", True)
+        else:
+            print("Ending meeting recording...")
+            self.meeting_active = False
+            self.meeting_transcriber.stop_recording()
+            self.meeting_record_btn.configure(text="Start Meeting", style="Record.TButton")
+            self.update_status("Ready", False)
+            self.convert_json_to_text()
+
+    def show_transcript(self, filename):
+        """Open a new window to display the transcript"""
+        # Create new window
+        self.transcript_window = tk.Toplevel(self.root)
+        self.transcript_window.title("Meeting Transcript")
+        self.transcript_window.geometry("600x800")
+
+        # Add text area with scrollbar
+        text_area = scrolledtext.ScrolledText(
+            self.transcript_window,
+            wrap=tk.WORD,
+            width=60,
+            height=40,
+            font=("Helvetica", 11)
+        )
+        text_area.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+        # Read and display the transcript
+        try:
+            with open(filename, 'r') as f:
+                content = f.read()
+                text_area.insert(tk.END, content)
+                text_area.configure(state='disabled')  # Make read-only
+        except Exception as e:
+            text_area.insert(tk.END, f"Error loading transcript: {str(e)}")
+            text_area.configure(state='disabled')
+
+    def convert_json_to_text(self):
+        """Convert the JSON transcriptions to a readable text format and save"""
+        try:
+            if not self.meeting_transcriber.transcriptions:
+                print("No transcript to save!")
+                return
+
+            # Create meetings directory if it doesn't exist
+            current_dir = os.path.abspath(os.path.dirname(__file__))
+            meetings_dir = os.path.join(current_dir, "meetings")
+            os.makedirs(meetings_dir, exist_ok=True)
+
+            # Generate filename with timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = os.path.join(meetings_dir, f"meeting_{timestamp}.txt")
+            
+            print(f"Saving to: {filename}")
+
+            with open(filename, "w") as f:
+                f.write("Meeting Transcript\n")
+                f.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write("-" * 50 + "\n\n")
+                
+                # Write each transcription entry
+                for entry in self.meeting_transcriber.transcriptions:
+                    timestamp = datetime.fromisoformat(entry['timestamp']).strftime('%H:%M:%S')
+                    transcript = entry['transcript']
+                    
+                    # Check if there are words with speaker information
+                    if entry.get('words') and hasattr(entry['words'][0], 'speaker'):
+                        speaker = f"Speaker {entry['words'][0].speaker}"
+                        f.write(f"[{timestamp}] {speaker}: {transcript}\n")
+                    else:
+                        f.write(f"[{timestamp}] {transcript}\n")
+
+            print(f"Successfully saved transcript to {filename}")
+            self.status_label.config(text=f"Meeting saved to {filename}")
+            
+            # Show the transcript in a new window
+            self.show_transcript(filename)
+            
+        except Exception as e:
+            print(f"Error saving transcript: {e}")
+            self.status_label.config(text=f"Error saving transcript: {str(e)}")
+    
     def update_status(self, message, is_recording=False):
         self.status_label.config(text=message)
         if is_recording:

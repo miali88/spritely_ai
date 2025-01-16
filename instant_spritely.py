@@ -19,6 +19,7 @@ from elevenlabs import stream as play_audio
 
 from gui import SpritelyGUI
 from utils.audio_utils import check_permissions, FORMAT, CHANNELS, RATE, CHUNK
+from transcribe_meeting import TranscriberApp
 
 load_dotenv()
 eleven_labs = ElevenLabs()
@@ -226,6 +227,16 @@ class SpeechTranscriber:
         self.loop.call_soon_threadsafe(self.loop.stop)
         print("Recording stopped!")
 
+class SpritelyApp:
+    def __init__(self):
+        # Initialize transcribers
+        self.transcriber = SpeechTranscriber()
+        self.field_transcriber = FieldTranscriber()
+        self.meeting_transcriber = TranscriberApp()
+        
+        # Create and store GUI instance
+        self.gui = SpritelyGUI(self.transcriber, self.field_transcriber, self.meeting_transcriber)
+
 def main():
     # Check if running from shortcut
     if len(sys.argv) > 1 and sys.argv[1] == "--from-shortcut":
@@ -235,11 +246,10 @@ def main():
         print("Please grant the required permissions and try again")
         return
 
-    transcriber = SpeechTranscriber()
-    field_transcriber = FieldTranscriber()
+    app = SpritelyApp()
     
-    # Create GUI
-    gui = SpritelyGUI(transcriber, field_transcriber)
+    # Track pressed keys
+    pressed_keys = set()
     
     def on_press(key):
         try:
@@ -254,27 +264,27 @@ def main():
             
             if cmd_pressed and alt_pressed:
                 if is_k:
-                    if not transcriber.is_recording:
-                        transcriber.start_recording()
-                        gui.update_status("AI Transcription Active", True)
+                    if not app.transcriber.is_recording:
+                        app.transcriber.start_recording()
+                        app.gui.update_status("AI Transcription Active", True)
                     else:
-                        transcriber.stop_recording()
-                        gui.update_status("Ready", False)
+                        app.transcriber.stop_recording()
+                        app.gui.update_status("Ready", False)
                 elif is_l:
-                    if not field_transcriber.is_recording:
-                        field_transcriber.start_recording()
-                        gui.update_status("Field Transcription Active", True)
+                    if not app.field_transcriber.is_recording:
+                        app.field_transcriber.start_recording()
+                        app.gui.update_status("Field Transcription Active", True)
                     else:
-                        field_transcriber.stop_recording()
-                        gui.update_status("Ready", False)
+                        app.field_transcriber.stop_recording()
+                        app.gui.update_status("Ready", False)
             elif key == keyboard.Key.esc:
-                transcriber.stop_recording()
-                field_transcriber.stop_recording()
-                gui.update_status("Ready", False)
+                app.transcriber.stop_recording()
+                app.field_transcriber.stop_recording()
+                app.gui.update_status("Ready", False)
                 return False
         except Exception as e:
             print(f"Error handling key press: {e}")
-            gui.update_status(f"Error: {str(e)}")
+            app.gui.update_status(f"Error: {str(e)}")
 
     def on_press_track(key):
         if isinstance(key, keyboard.KeyCode):
@@ -292,15 +302,12 @@ def main():
         except KeyError:
             pass
 
-    # Track pressed keys
-    pressed_keys = set()
-    
     # Start keyboard listener in a separate thread
     listener = keyboard.Listener(on_press=on_press_track, on_release=on_release)
     listener.start()
     
     # Start GUI main loop
-    gui.run()
+    app.gui.run()
 
 if __name__ == "__main__":
     main()
