@@ -6,7 +6,6 @@
 
 Spritely AI is a powerful desktop application that enables real-time audio transcription with AI analysis. It combines local audio processing with cloud-based AI to provide a seamless voice-to-text experience.
 
-This repository is the desktop app and the web app is available at [https://spritelyai.com]
 ## 🌟 Features
 
 ### Desktop App
