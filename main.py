@@ -238,6 +238,8 @@ class SpritelyApp:
         self.gui = SpritelyGUI(self.transcriber, self.field_transcriber, self.meeting_transcriber)
 
 def main():
+    print("\n✨ Spritely AI is ready to assist✨🧚🏼‍♀️ \n")
+    
     # Check if running from shortcut
     if len(sys.argv) > 1 and sys.argv[1] == "--from-shortcut":
         print("Running from keyboard shortcut")
