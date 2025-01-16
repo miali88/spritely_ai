@@ -13,9 +13,13 @@ from groq import Groq
 
 load_dotenv()
 
-eleven_labs = ElevenLabs()
-anthropic_client = Anthropic()
-groq_client = Groq()
+eleven_labs_api_key = os.getenv("ELEVENLABS_API_KEY")
+anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+groq_api_key = os.getenv("GROQ_API_KEY")
+
+eleven_labs = ElevenLabs(api_key=eleven_labs_api_key)
+anthropic_client = Anthropic(api_key=anthropic_api_key)
+groq_client = Groq(api_key=groq_api_key)
 
 # Initialize logger
 logger = setup_logger(__name__, log_level="DEBUG", use_color=True)

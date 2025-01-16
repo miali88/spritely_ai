@@ -28,8 +28,23 @@ This repository is the desktop app and the web app is available at [https://spri
 
 ### Desktop App Setup
 
-.......
+1. Clone the repository:
+```bash
+git clone https://github.com/spritelyai/spritely-ai.git
+```
 
+2. Install dependencies:
+```bash
+cd spritely-ai
+python3.12 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+3. Run the app:
+```bash
+python main.py
+```
 
 ## 🎯 Usage
 

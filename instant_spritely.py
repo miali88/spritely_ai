@@ -10,19 +10,31 @@ import os
 import subprocess
 import asyncio
 import sys
-from invoke_llm import process_prompt
 from utils.logging_config import setup_logger
 from user_settings import settings, save_settings
-from transcribe_field import SpeechTranscriber as FieldTranscriber
+
 from elevenlabs.client import ElevenLabs
 from elevenlabs import stream as play_audio
 
 from gui import SpritelyGUI
 from utils.audio_utils import check_permissions, FORMAT, CHANNELS, RATE, CHUNK
 from transcribe_meeting import TranscriberApp
+from transcribe_field import SpeechTranscriber as FieldTranscriber
+from invoke_llm import process_prompt
+
+# Move logger initialization to the top, right after imports
+logger = setup_logger(__name__)
 
 load_dotenv()
-eleven_labs = ElevenLabs()
+eleven_labs_api_key = os.getenv("ELEVENLABS_API_KEY")
+
+if not eleven_labs_api_key:
+    logger.error("ELEVENLABS_API_KEY not found in environment variables")
+    raise ValueError("ELEVENLABS_API_KEY is required")
+
+eleven_labs = ElevenLabs(
+    api_key=eleven_labs_api_key
+    )
 
 """ transcribed audio to cursor/input field """
 
@@ -31,9 +43,6 @@ FORMAT = pyaudio.paInt16
 CHANNELS = 2
 RATE = 44100
 CHUNK = 1024
-
-# Initialize logger
-logger = setup_logger(__name__)
 
 class SpeechTranscriber:
     def __init__(self):
@@ -55,32 +64,25 @@ class SpeechTranscriber:
 
     async def on_message(self, event, result):
         logger.debug(f"Received message - Event type: {event}")
-        print(f"Result type: {type(result)}")
+        logger.debug(f"Result type: {type(result)}")
         try:
-            # Create a timestamp for the transcription
             timestamp = datetime.now().isoformat()
-            
-            print("\n=== Transcription Debug ===")
-            print(f"[{timestamp}]")
+            logger.debug(f"Processing transcription at {timestamp}")
             
             if hasattr(result, 'is_final'):
                 if result.is_final:
                     transcript = result.channel.alternatives[0].transcript
                     transcript = transcript.strip() + " "
                     
-                    # Simplified collection - always collect while recording
                     if transcript.strip():
                         self.collected_transcript.append(transcript.strip())
-                        print(f"📝 Adding to transcript: {transcript.strip()}")
+                        logger.info(f"Added to transcript: {transcript.strip()}")
                     
-                    # Print debug info
-                    print(f"\n🎤 Transcription Details:")
-                    print(f"📝 Transcript: {transcript}")
-                    print(f"✨ Confidence: {result.channel.alternatives[0].confidence:.2f}")
+                    logger.debug(f"Transcription Details:")
+                    logger.debug(f"Transcript: {transcript}")
+                    logger.debug(f"Confidence: {result.channel.alternatives[0].confidence:.2f}")
         except Exception as e:
             logger.error(f"Error in transcription: {e}", exc_info=True)
-            import traceback
-            traceback.print_exc()
 
     def start_recording(self):
         if self.is_recording:
@@ -118,9 +120,9 @@ class SpeechTranscriber:
         else:
             input_device = self.audio.get_default_input_device_info()
             
-        print(f"\n🎤 Recording using: {input_device['name']}")
-        print(f"    Sample Rate: {input_device['defaultSampleRate']}Hz")
-        print(f"    Max Input Channels: {input_device['maxInputChannels']}")
+        logger.info(f"Recording using: {input_device['name']}")
+        logger.debug(f"Sample Rate: {input_device['defaultSampleRate']}Hz")
+        logger.debug(f"Max Input Channels: {input_device['maxInputChannels']}")
         
         deepgram = DeepgramClient()
 
@@ -187,7 +189,7 @@ class SpeechTranscriber:
         if not self.is_recording:
             return
 
-        print("Stopping recording...")
+        logger.info("Stopping recording...")
         audio_stream = eleven_labs.generate(
             text="thinking...",
             voice="OOjDveYEA7KnRY2FRSmX",
@@ -200,20 +202,18 @@ class SpeechTranscriber:
         if self.collected_transcript:
             try:
                 full_transcript = " ".join(self.collected_transcript)
-                print(f"📝 Processing full transcript: {full_transcript}")
-                print("full_transcript type: ", type(full_transcript))
-                # Pass the cartesia client to process_prompt
+                logger.info(f"Processing full transcript: {full_transcript}")
+                logger.debug(f"full_transcript type: {type(full_transcript)}")
+                
                 fut = asyncio.run_coroutine_threadsafe(
                     process_prompt(full_transcript), 
                     self.loop
                 )
-                response, response_type = fut.result()  # Wait for the LLM result
-                print(f"🤖 LLM Response: {response}")
-                
-                # Clipboard handling is now done in process_prompt
+                response, response_type = fut.result()
+                logger.info(f"LLM Response: {response}")
                 
             except Exception as e:
-                print(f"❌ Error processing with LLM: {e}")
+                logger.error(f"Error processing with LLM: {e}", exc_info=True)
         
         # Reset collection
         self.collected_transcript = []   
