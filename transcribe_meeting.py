@@ -250,6 +250,7 @@ class TranscriberApp:
                 filename = f"meetings/json/transcription_{timestamp}.json"
                 with open(filename, 'w') as f:
                     json.dump(serializable_transcripts, f, indent=2)
+                    
                 print(f"Transcriptions saved to {filename}")
 
 # Add main block

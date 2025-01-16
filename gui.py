@@ -11,18 +11,52 @@ class SpritelyGUI:
         self.root.title("Spritely")
         self.root.geometry("400x500")
         
-        self.transcriber = transcriber
-        self.field_transcriber = field_transcriber
-        self.meeting_transcriber = meeting_transcriber
+        # Make window transparent
+        self.root.attributes('-alpha', 0.95)  # 95% opacity
         
         # Style configuration
         style = ttk.Style()
-        style.configure("Record.TButton", foreground="green", padding=10)
-        style.configure("Stop.TButton", foreground="red", padding=10)
         
-        # Main container with padding
+        # Configure modern theme if available
+        try:
+            self.root.tk.call('source', 'azure.tcl')  # You'll need to download azure theme
+            style.theme_use('azure')
+        except:
+            print("Azure theme not found, using default theme")
+        
+        # Custom styles with modern colors
+        style.configure("Record.TButton", 
+                       foreground="#2ecc71",
+                       padding=10,
+                       font=("Helvetica", 10, "bold"))
+        
+        style.configure("Stop.TButton",
+                       foreground="#e74c3c",
+                       padding=10,
+                       font=("Helvetica", 10, "bold"))
+        
+        style.configure("TLabelframe",
+                       background="#ffffff",
+                       relief="flat",
+                       borderwidth=0)
+        
+        style.configure("TLabelframe.Label",
+                       font=("Helvetica", 11, "bold"),
+                       foreground="#2c3e50")
+        
+        # Main container with glossy background
         main_container = ttk.Frame(self.root, padding="20")
         main_container.pack(fill="both", expand=True)
+        
+        # Add subtle background
+        bg_color = "#f8f9fa"
+        self.root.configure(bg=bg_color)
+        main_container.configure(style="Main.TFrame")
+        style.configure("Main.TFrame", background=bg_color)
+        
+        self.transcriber = transcriber
+        self.field_transcriber = field_transcriber
+        self.meeting_transcriber = meeting_transcriber
         
         # Status frame
         status_frame = ttk.LabelFrame(main_container, text="Status", padding="10")
@@ -153,14 +187,19 @@ class SpritelyGUI:
         self.transcript_window = tk.Toplevel(self.root)
         self.transcript_window.title("Meeting Transcript")
         self.transcript_window.geometry("600x800")
-
-        # Add text area with scrollbar
+        
+        # Make transcript window also transparent
+        self.transcript_window.attributes('-alpha', 0.95)
+        self.transcript_window.configure(bg="#f8f9fa")
+        
         text_area = scrolledtext.ScrolledText(
             self.transcript_window,
             wrap=tk.WORD,
             width=60,
             height=40,
-            font=("Helvetica", 11)
+            font=("Helvetica", 11),
+            bg="#ffffff",
+            relief="flat"
         )
         text_area.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 
