@@ -5,13 +5,13 @@ from datetime import datetime
 from dotenv import load_dotenv
 import pyperclip
 from pynput import keyboard
-import time
 import os
 import subprocess
 import asyncio
 import sys
-from utils.logging_config import setup_logger
-from user_settings import settings, save_settings
+
+from src.spritely.utils.logging import setup_logging
+from src.spritely.utils.user_settings import settings, save_settings
 
 load_dotenv()
 
@@ -24,7 +24,7 @@ RATE = 44100
 CHUNK = 1024
 
 # Initialize logger
-logger = setup_logger(__name__)
+logger = setup_logging(__name__)
 
 class SpeechTranscriber:
     def __init__(self):

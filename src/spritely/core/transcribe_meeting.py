@@ -6,10 +6,11 @@ from dotenv import load_dotenv
 import json
 from typing import Dict
 from colorama import init, Fore, Style
-from utils.logging_config import setup_logger
-from user_settings import settings
 import numpy as np
 import time
+
+from src.spritely.utils.logging import setup_logging
+from src.spritely.utils.user_settings import settings
 
 """ this project streams the transcribd audio, with speaker diarization to terminal
 TODO:
@@ -20,7 +21,7 @@ TODO:
 load_dotenv()
 
 # Initialize logger
-logger = setup_logger(__name__)
+logger = setup_logging(__name__)
 
 # Audio settings
 FORMAT = pyaudio.paInt16

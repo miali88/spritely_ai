@@ -2,11 +2,12 @@ import pyaudio
 from pynput import keyboard
 import subprocess
 import os
-from user_settings import settings, save_settings
-from utils.logging_config import setup_logger
+
+from src.spritely.utils.user_settings import settings, save_settings
+from src.spritely.utils.logging import setup_logging
 
 # Initialize logger
-logger = setup_logger(__name__)
+logger = setup_logging(__name__)
 
 # Audio constants
 FORMAT = pyaudio.paInt16

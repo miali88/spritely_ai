@@ -5,25 +5,23 @@ from datetime import datetime
 from dotenv import load_dotenv
 import pyperclip
 from pynput import keyboard
-import time
 import os
-import subprocess
 import asyncio
 import sys
-from utils.logging_config import setup_logger
-from user_settings import settings, save_settings
 
 from elevenlabs.client import ElevenLabs
 from elevenlabs import stream as play_audio
 
-from gui import SpritelyGUI
-from utils.audio_utils import check_permissions, FORMAT, CHANNELS, RATE, CHUNK
-from transcribe_meeting import TranscriberApp
-from transcribe_field import SpeechTranscriber as FieldTranscriber
-from invoke_llm import process_prompt
+from src.spritely.utils.logging import setup_logging
+from src.spritely.utils.user_settings import settings
+from src.spritely.gui.gui import SpritelyGUI
+from src.spritely.utils.audio_utils import check_permissions, FORMAT, CHANNELS, RATE, CHUNK
+from src.spritely.core.transcribe_meeting import TranscriberApp
+from src.spritely.core.transcribe_field import SpeechTranscriber as FieldTranscriber
+from src.spritely.core.invoke_llm import process_prompt
 
 # Move logger initialization to the top, right after imports
-logger = setup_logger(__name__)
+logger = setup_logging(__name__)
 
 load_dotenv()
 eleven_labs_api_key = os.getenv("ELEVENLABS_API_KEY")

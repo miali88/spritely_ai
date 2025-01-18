@@ -1,15 +1,16 @@
-from utils.logging_config import setup_logger
 from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
 from elevenlabs import stream as play_audio
 from elevenlabs.client import ElevenLabs
 from anthropic import Anthropic
-from tools import tools
 import prompts
 import pyperclip
 from typing import Literal
 from groq import Groq
+
+from src.spritely.utils.logging import setup_logging
+from src.spritely.core.tools import tools
 
 load_dotenv()
 
@@ -22,7 +23,7 @@ anthropic_client = Anthropic(api_key=anthropic_api_key)
 groq_client = Groq(api_key=groq_api_key)
 
 # Initialize logger
-logger = setup_logger(__name__, log_level="DEBUG", use_color=True)
+logger = setup_logging(log_level="DEBUG", use_color=True)
 
 # Add near the top of the file with other globals
 current_audio_stream = None
@@ -73,7 +74,7 @@ async def save_to_clipboard(prompt: str) -> str:
 
 def llm_clipboard(prompt: str):
     message = anthropic_client.messages.create(
-        model="claude-3-sonnet-20240229",
+        model="claude-3-5-sonnet-20241022",
         max_tokens=1024,
         temperature=0.4,
         messages=[{
@@ -91,7 +92,7 @@ def llm_clipboard(prompt: str):
 
 def llm_speak(prompt: str):
     message = anthropic_client.messages.create(
-        model="claude-3-5-sonnet-20240620",
+        model="claude-3-5-sonnet-20241022",
         max_tokens=1024,
         temperature=0.4,
         messages=[{

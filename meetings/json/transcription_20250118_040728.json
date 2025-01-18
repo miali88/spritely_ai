@@ -1,0 +1,20 @@
+[
+  {
+    "timestamp": "2025-01-18T04:07:24.998202",
+    "transcript": "okay so we've started recording",
+    "confidence": 0.8942871,
+    "speaker": 0,
+    "start_time": 0.0,
+    "duration": 4.97,
+    "request_id": "f60c829c-e8b6-4c87-8b13-485bb8af39be"
+  },
+  {
+    "timestamp": "2025-01-18T04:07:26.668123",
+    "transcript": "we started recording right now",
+    "confidence": 0.98828125,
+    "speaker": 0,
+    "start_time": 4.97,
+    "duration": 1.6400003,
+    "request_id": "f60c829c-e8b6-4c87-8b13-485bb8af39be"
+  }
+]

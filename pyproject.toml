@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "spritely"
+version = "0.1.0"
+description = "Spritely AI Assistant - Your voice-enabled AI companion"
+authors = [
+    {name = "Michael Ali"}
+]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "anthropic>=0.7.0",
+    "elevenlabs>=0.2.26",
+    "groq>=0.3.0",
+    "pyaudio>=0.2.13",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "deepgram-sdk>=2.12.0",
+    "sounddevice>=0.4.6",
+    "numpy>=1.24.0",
+    "tkinter",
+]
+
+[project.scripts]
+spritely = "spritely.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/spritely"] 

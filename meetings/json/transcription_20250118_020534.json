@@ -1,0 +1,29 @@
+[
+  {
+    "timestamp": "2025-01-18T02:05:28.681579",
+    "transcript": "okay we're giving this",
+    "confidence": 0.9875488,
+    "speaker": 0,
+    "start_time": 0.0,
+    "duration": 2.37,
+    "request_id": "bdf68589-8aa8-4c7a-ac09-8f6d14b43d21"
+  },
+  {
+    "timestamp": "2025-01-18T02:05:31.307193",
+    "transcript": "a nine out of nine",
+    "confidence": 0.96362305,
+    "speaker": 0,
+    "start_time": 3.94,
+    "duration": 1.1100001,
+    "request_id": "bdf68589-8aa8-4c7a-ac09-8f6d14b43d21"
+  },
+  {
+    "timestamp": "2025-01-18T02:05:32.352784",
+    "transcript": "fantastic",
+    "confidence": 0.99658203,
+    "speaker": 0,
+    "start_time": 5.05,
+    "duration": 0.98,
+    "request_id": "bdf68589-8aa8-4c7a-ac09-8f6d14b43d21"
+  }
+]

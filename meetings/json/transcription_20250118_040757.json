@@ -1,0 +1,20 @@
+[
+  {
+    "timestamp": "2025-01-18T04:07:54.094728",
+    "transcript": "okay so we're doing it",
+    "confidence": 0.99853516,
+    "speaker": 0,
+    "start_time": 0.95,
+    "duration": 1.44,
+    "request_id": "5eae49e7-4126-4a64-891f-eec449f84aa1"
+  },
+  {
+    "timestamp": "2025-01-18T04:07:56.068931",
+    "transcript": "we're doing it right",
+    "confidence": 0.99902344,
+    "speaker": 0,
+    "start_time": 2.39,
+    "duration": 1.9599998,
+    "request_id": "5eae49e7-4126-4a64-891f-eec449f84aa1"
+  }
+]
