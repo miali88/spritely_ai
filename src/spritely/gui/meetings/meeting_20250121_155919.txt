@@ -1,0 +1,16 @@
+Meeting Transcript
+Date: 2025-01-21 15:59:19
+--------------------------------------------------
+
+[15:58:56] Speaker 0: and so we're in a meeting and we're discussing
+[15:58:58] Speaker 0: the
+[15:58:59] 
+[15:59:00] 
+[15:59:05] Speaker 0: we're discussing the rationale for the
+[15:59:06] 
+[15:59:11] 
+[15:59:13] Speaker 0: architecture for web apps so how do we go about
+[15:59:15] Speaker 0: mixing the different
+[15:59:17] Speaker 0: architectures
+[15:59:17] 
+[15:59:18] 

@@ -19,10 +19,15 @@ Spritely AI is a powerful desktop application that enables real-time audio trans
 - Local audio processing for privacy
 - Automatic microphone selection and configuration
 
+
 ### 🗺️ Roadmap
-- Always-on listening mode with wake word detection
-- Conversation memory and context retention
-- Add Greptile API to tools
+- Add conversation history (in session context, a dict)
+- Always-on listening mode with wake word detection. See local STT. 
+- Create a md file for database. Use an LLM instead of vector similarity search. 
+- Add meeting summaries to md file.
+- Polish the tkinter UI, i.e for meeting summary and transcription.
+- Add Greptile API to tools.
+
 
 ### Bug Fixes
 - Spritely's spoken output cuts off without completing the LLMs entire response

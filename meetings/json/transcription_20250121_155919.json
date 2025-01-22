@@ -1,0 +1,56 @@
+[
+  {
+    "timestamp": "2025-01-21T15:58:56.408289",
+    "transcript": "and so we're in a meeting and we're discussing",
+    "confidence": 0.9921875,
+    "speaker": 0,
+    "start_time": 0.0,
+    "duration": 4.18,
+    "request_id": "a57f6b43-9c8d-4493-a5f6-a9fe7cedeaf1"
+  },
+  {
+    "timestamp": "2025-01-21T15:58:58.379258",
+    "transcript": "the",
+    "confidence": 0.9980469,
+    "speaker": 0,
+    "start_time": 4.18,
+    "duration": 1.94,
+    "request_id": "a57f6b43-9c8d-4493-a5f6-a9fe7cedeaf1"
+  },
+  {
+    "timestamp": "2025-01-21T15:59:05.324136",
+    "transcript": "we're discussing the rationale for the",
+    "confidence": 0.99902344,
+    "speaker": 0,
+    "start_time": 8.69,
+    "duration": 4.4000006,
+    "request_id": "a57f6b43-9c8d-4493-a5f6-a9fe7cedeaf1"
+  },
+  {
+    "timestamp": "2025-01-21T15:59:13.271720",
+    "transcript": "architecture for web apps so how do we go about",
+    "confidence": 0.9980469,
+    "speaker": 0,
+    "start_time": 17.35,
+    "duration": 3.7600002,
+    "request_id": "a57f6b43-9c8d-4493-a5f6-a9fe7cedeaf1"
+  },
+  {
+    "timestamp": "2025-01-21T15:59:15.501823",
+    "transcript": "mixing the different",
+    "confidence": 1.0,
+    "speaker": 0,
+    "start_time": 21.11,
+    "duration": 2.0900002,
+    "request_id": "a57f6b43-9c8d-4493-a5f6-a9fe7cedeaf1"
+  },
+  {
+    "timestamp": "2025-01-21T15:59:17.441187",
+    "transcript": "architectures",
+    "confidence": 0.92871094,
+    "speaker": 0,
+    "start_time": 23.2,
+    "duration": 1.9499989,
+    "request_id": "a57f6b43-9c8d-4493-a5f6-a9fe7cedeaf1"
+  }
+]

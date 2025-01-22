@@ -1,0 +1,56 @@
+[
+  {
+    "timestamp": "2025-01-21T16:11:33.526885",
+    "transcript": "click in",
+    "confidence": 0.9350586,
+    "speaker": 0,
+    "start_time": 0.0,
+    "duration": 1.06,
+    "request_id": "8bcc93ba-adc0-4b6f-ae75-e6e2d8d19640"
+  },
+  {
+    "timestamp": "2025-01-21T16:11:38.557408",
+    "transcript": "meeting transcription like this will start transcribing our meeting",
+    "confidence": 0.9423828,
+    "speaker": 0,
+    "start_time": 1.06,
+    "duration": 3.71,
+    "request_id": "8bcc93ba-adc0-4b6f-ae75-e6e2d8d19640"
+  },
+  {
+    "timestamp": "2025-01-21T16:11:39.247058",
+    "transcript": "as you're speaking as i'm speaking",
+    "confidence": 1.0,
+    "speaker": 0,
+    "start_time": 4.77,
+    "duration": 1.8000002,
+    "request_id": "8bcc93ba-adc0-4b6f-ae75-e6e2d8d19640"
+  },
+  {
+    "timestamp": "2025-01-21T16:11:40.296562",
+    "transcript": "it will",
+    "confidence": 0.99902344,
+    "speaker": 0,
+    "start_time": 6.57,
+    "duration": 1.0699997,
+    "request_id": "8bcc93ba-adc0-4b6f-ae75-e6e2d8d19640"
+  },
+  {
+    "timestamp": "2025-01-21T16:11:41.061006",
+    "transcript": "click the text",
+    "confidence": 0.8942871,
+    "speaker": 0,
+    "start_time": 7.64,
+    "duration": 0.9600005,
+    "request_id": "8bcc93ba-adc0-4b6f-ae75-e6e2d8d19640"
+  },
+  {
+    "timestamp": "2025-01-21T16:11:44.417335",
+    "transcript": "and then once the meeting ends",
+    "confidence": 1.0,
+    "speaker": 0,
+    "start_time": 10.41,
+    "duration": 1.4089375,
+    "request_id": "8bcc93ba-adc0-4b6f-ae75-e6e2d8d19640"
+  }
+]
