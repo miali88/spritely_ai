@@ -23,7 +23,8 @@ Spritely AI is a powerful desktop application that enables real-time audio trans
 ### 🗺️ Roadmap
 - Add conversation history (in session context, a dict)
 - Always-on listening mode with wake word detection. See local STT. 
-- Create a md file for database. Use an LLM instead of vector similarity search. 
+- Create a md file for database. Use an LLM instead of vector similarity search. Code example:
+[text](https://small-limit-60e.notion.site/Using-an-LLM-agent-instead-of-vector-search-for-IR-18353e390487801cb447cb2eb111a18f)
 - Add meeting summaries to md file.
 - Polish the tkinter UI, i.e for meeting summary and transcription.
 - Add Greptile API to tools.
