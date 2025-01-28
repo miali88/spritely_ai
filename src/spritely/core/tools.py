@@ -1,3 +1,9 @@
+"""
+tools for spritely ai
+
+see claude-engineer for inspiration
+"""
+
 from anthropic.types import ToolParam
 
 tools: list[ToolParam] = [

@@ -6,8 +6,9 @@ from elevenlabs.client import ElevenLabs
 from anthropic import Anthropic
 import prompts
 import pyperclip
-from typing import Literal
+from typing import Literal, List, Dict
 from groq import Groq
+from datetime import datetime
 
 from src.spritely.utils.logging import setup_logging
 from src.spritely.core.tools import tools
@@ -40,6 +41,34 @@ class ResponseType:
     FIELD: Literal["field"] = "field"
 
 ResponseTypeStr = Literal["speak", "clipboard", "store", "field"]
+
+class ConversationMemory:
+    def __init__(self, max_history: int = 10):
+        self.history: List[Dict] = []
+        self.max_history = max_history
+    
+    def add_exchange(self, user_input: str, response: str, response_type: str):
+        """Add a conversation exchange to memory"""
+        exchange = {
+            "timestamp": datetime.now().isoformat(),
+            "user_input": user_input,
+            "response": response,
+            "response_type": response_type
+        }
+        self.history.append(exchange)
+        if len(self.history) > self.max_history:
+            self.history.pop(0)
+    
+    def get_context(self) -> str:
+        """Get formatted conversation history for context"""
+        context = []
+        for exchange in self.history:
+            context.append(f"[User]: {exchange['user_input']}")
+            context.append(f"[Assistant ({exchange['response_type']})]: {exchange['response']}")
+        return "\n".join(context)
+
+# Initialize conversation memory
+conversation_memory = ConversationMemory()
 
 async def save_to_clipboard(prompt: str) -> str:
     """Save LLM response to clipboard and play notification.
@@ -158,7 +187,7 @@ async def get_response_type(prompt: str, client: Anthropic) -> str:
         raise
 
 async def process_prompt(prompt: str) -> tuple[str, ResponseTypeStr]:
-    """Main prompt processing pipeline.
+    """Main prompt processing pipeline with conversation memory.
     
     Args:
         prompt: User input prompt
@@ -169,18 +198,35 @@ async def process_prompt(prompt: str) -> tuple[str, ResponseTypeStr]:
     logger.info(f"🎯 Processing prompt: {prompt[:50]}...")
     
     try:
-        response_type = await get_response_type(prompt, anthropic_client)
+        # Get conversation history context
+        context = conversation_memory.get_context()
+        
+        # Add thinking tags and context to the prompt
+        enhanced_prompt = f"""<conversation_history>
+{context}
+</conversation_history>
+
+<current_request>
+{prompt}
+</current_request>
+
+<thinking>Please consider the conversation history above when formulating your response.</thinking>"""
+
+        response_type = await get_response_type(enhanced_prompt, anthropic_client)
         logger.info(f"📋 Determined response type: {response_type}")
         
+        response_text = ""
         if response_type == ResponseType.SPEAK:
-            await tts_service(prompt)
-            return "", response_type  # Return empty string since audio was played
+            await tts_service(enhanced_prompt)
         elif response_type == ResponseType.CLIPBOARD:
-            response_text = await save_to_clipboard(prompt)
-            return response_text, response_type
+            response_text = await save_to_clipboard(enhanced_prompt)
         elif response_type == ResponseType.STORE:
-            return "", response_type
+            pass
+            
+        # Store the exchange in memory
+        conversation_memory.add_exchange(prompt, response_text, response_type)
         
+        return response_text, response_type
             
     except Exception as e:
         logger.error(f"❌ Processing failed: {e}", exc_info=True)
