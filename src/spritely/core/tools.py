@@ -24,7 +24,20 @@ tools: list[ToolParam] = [
             "required": ["paths"]
         }
     },
-
+    {
+        "name": "browser_action",
+        "description": "Execute browser-based tasks using an AI agent. This tool should be used when the user wants to perform web-based actions or gather information from websites.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "task": {
+                    "type": "string",
+                    "description": "The task description for the browser agent to execute. Be specific about what actions to take and what information to gather."
+                }
+            },
+            "required": ["task"]
+        }
+    }
 ]
 #     {
 #         "name": "scan_folder",

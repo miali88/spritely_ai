@@ -12,6 +12,7 @@ from datetime import datetime
 
 from src.spritely.utils.logging import setup_logging
 from src.spritely.core.tools import tools
+from src.spritely.core.browser import execute_browser_task
 
 load_dotenv()
 
@@ -119,6 +120,7 @@ def llm_clipboard(prompt: str):
             logger.debug(f"📝 Received chunk: {chunk.delta.text[:20]}...")
             yield chunk.delta.text
 
+
 def llm_speak(prompt: str):
     message = anthropic_client.messages.create(
         model="claude-3-5-sonnet-20241022",
@@ -187,17 +189,22 @@ async def get_response_type(prompt: str, client: Anthropic) -> str:
         raise
 
 async def process_prompt(prompt: str) -> tuple[str, ResponseTypeStr]:
-    """Main prompt processing pipeline with conversation memory.
-    
-    Args:
-        prompt: User input prompt
-        
-    Returns:
-        tuple[str, ResponseTypeStr]: The response text and the response type
-    """
     logger.info(f"🎯 Processing prompt: {prompt[:50]}...")
     
     try:
+        # Check for browser-related keywords
+        if any(keyword in prompt.lower() for keyword in ['use the browser', 'use the internet']):
+            logger.info("🌐 Browser action detected, invoking browser tool...")
+            try:
+                result = await execute_browser_task(prompt)
+                response_text = f"Browser task completed. Result: {result}"
+                response_type = ResponseType.CLIPBOARD
+                conversation_memory.add_exchange(prompt, response_text, response_type)
+                return response_text, response_type
+            except Exception as e:
+                logger.error(f"❌ Browser task failed: {e}", exc_info=True)
+                raise
+
         # Get conversation history context
         context = conversation_memory.get_context()
         
